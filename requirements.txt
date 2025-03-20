@@ -1,5 +1,6 @@
-Streamline
-Tifffile
-Scikit-image
-Matplotlib
+streamline
+tifffile
+scikit-image
+matplotlib
 numpy
+imagecodecs

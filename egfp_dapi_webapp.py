@@ -36,8 +36,17 @@ st.markdown(
 st.title("EGFP & DAPI Cell Analysis Web App 🐱")
 
 # Upload images
-egfp_file = st.file_uploader("Upload EGFP Image (TIF)", type=["tif"])
-dapi_file = st.file_uploader("Upload DAPI Image (TIF)", type=["tif"])
+egfp_file = st.file_uploader("Upload EGFP Image (TIF) - Filename must include 'EGFP'", type=["tif"])
+dapi_file = st.file_uploader("Upload DAPI Image (TIF) - Filename must include 'DAPI'", type=["tif"])
+
+# Check if the filenames are valid
+if egfp_file and "EGFP" not in egfp_file.name:
+    st.error("Error: The EGFP image filename must contain 'EGFP'. Please check the file.")
+    egfp_file = None
+
+if dapi_file and "DAPI" not in dapi_file.name:
+    st.error("Error: The DAPI image filename must contain 'DAPI'. Please check the file.")
+    dapi_file = None
 
 # Threshold multiplier input
 egfp_threshold_multiplier = st.slider("Adjust EGFP Threshold Multiplier", min_value=1.0, max_value=5.0, value=3.0, step=0.1)

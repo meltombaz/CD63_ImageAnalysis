@@ -41,7 +41,7 @@ egfp_threshold_multiplier = st.slider("Adjust EGFP Threshold Multiplier", min_va
 
 # Updated key extraction based on full filenames you provided
 def extract_sample_key(filename):
-    match = re.search(r'(A\d{2}f\d{9}_\d+-\d+_[A-Z]+)\.tif$', filename)
+    match = re.search(r'_(A\d{2}f\d{9}_\d+-\d+_[A-Z]+)\.tif$', filename)
     return match.group(1) if match else None
 
 # Group files by extracted key

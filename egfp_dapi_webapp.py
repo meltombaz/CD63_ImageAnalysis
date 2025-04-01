@@ -13,7 +13,7 @@ st.markdown(
     """
     <style>
         body {
-            background-image: url('https://wallpapercat.com/w/full/e/9/c/24514-1920x1200-desktop-hd-kitten-background-photo.jpg');
+            background-image: url('https://pbs.twimg.com/media/GmuT894XoAAGm5a?format=jpg&name=4096x4096');
             background-size: cover;
             color: white;
         }

@@ -14,7 +14,7 @@ st.markdown(
     """
     <style>
         body {
-            background-image: url('https://pbs.twimg.com/media/GnYfJ-vWQAABRb9?format=jpg&name=large');
+            background-image: url('https://pbs.twimg.com/media/GmuT894XoAAGm5a?format=jpg&name=4096x4096');
             background-size: cover;
             color: white;
         }

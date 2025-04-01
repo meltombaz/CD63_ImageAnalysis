@@ -39,10 +39,12 @@ uploaded_files = st.file_uploader("Upload EGFP and DAPI TIFF files", type=["tif"
 # Threshold slider
 egfp_threshold_multiplier = st.slider("Adjust EGFP Threshold Multiplier", min_value=1.0, max_value=5.0, value=3.0, step=0.1)
 
-# ✅ FINAL FIXED sample key extractor
+# Use this instead of regex
 def extract_sample_key(filename):
-    match = re.search(r'(A\d{2}f\d{9}_\d+-\d+_[A-Z]+)', filename)
-    return match.group(1) if match else None
+    parts = filename.replace(".tif", "").split("_")
+    if len(parts) >= 3:
+        return "_".join(parts[-3:])
+    return None
 
 # Group files by extracted key
 file_dict = defaultdict(dict)

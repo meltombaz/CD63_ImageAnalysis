@@ -7,7 +7,11 @@ import re
 from collections import defaultdict
 import pandas as pd
 
-# Page config and pink theme
+# --- Session state for clear functionality ---
+if "clear_uploads" not in st.session_state:
+    st.session_state.clear_uploads = False
+
+# --- Page config and style ---
 st.set_page_config(page_title="Batch EGFP & DAPI Analysis", page_icon="🐱", layout="wide")
 st.markdown(
     """
@@ -32,15 +36,28 @@ st.markdown(
 
 st.title("Batch EGFP & DAPI Cell Analysis Web App 🐱")
 
-# Upload multiple files
-uploaded_files = st.file_uploader("Upload EGFP and DAPI TIFF files", type=["tif"], accept_multiple_files=True)
+# --- Clear all files button ---
+col1, col2 = st.columns([4, 1])
+with col2:
+    if st.button("🗑️ Clear All Files"):
+        st.session_state.clear_uploads = True
+        st.experimental_rerun()
 
-# Limit number of uploaded files
+# --- Upload files ---
+uploaded_files = st.file_uploader(
+    "Upload EGFP and DAPI TIFF files",
+    type=["tif"],
+    accept_multiple_files=True,
+    key=None if not st.session_state.clear_uploads else str(np.random.rand())
+)
+st.session_state.clear_uploads = False  # reset after use
+
+# --- Limit number of uploaded files ---
 if uploaded_files and len(uploaded_files) > 40:
     st.error("⚠️ Please upload a maximum of 20 EGFP+DAPI image pairs (40 files total).")
     uploaded_files = uploaded_files[:40]
 
-# Threshold slider
+# --- Threshold control ---
 egfp_threshold_multiplier = st.slider(
     "Adjust EGFP Threshold Multiplier",
     min_value=1.0,
@@ -49,14 +66,14 @@ egfp_threshold_multiplier = st.slider(
     step=0.1
 )
 
-# ✅ Sample key extractor using last 3 parts: wellID_grid_treatment
+# --- Sample key extractor ---
 def extract_sample_key(filename):
     parts = filename.replace(".tif", "").split("_")
     if len(parts) >= 3:
-        return "_".join(parts[-3:])
+        return "_".join(parts[-3:])  # A01f00..._Grid_Condition
     return None
 
-# Group files by sample key
+# --- Group files by sample key ---
 file_dict = defaultdict(dict)
 for file in uploaded_files:
     fname = file.name
@@ -74,7 +91,7 @@ if file_dict:
 
 results = []
 
-# Process each matched pair
+# --- Process each matched pair ---
 for sample, files in file_dict.items():
     if "EGFP" in files and "DAPI" in files:
         egfp_image = tiff.imread(files["EGFP"])
@@ -102,7 +119,7 @@ for sample, files in file_dict.items():
             "EGFP+ %": f"{percentage:.2f}%"
         })
 
-        # --- Show visualization ---
+        # --- Visualization ---
         with st.expander(f"🔬 Results for {sample}"):
             fig, axes = plt.subplots(2, 3, figsize=(15, 10))
             axes[0, 0].imshow(egfp_image, cmap='gray')

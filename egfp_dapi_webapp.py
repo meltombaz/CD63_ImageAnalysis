@@ -58,13 +58,13 @@ if uploaded_files and len(uploaded_files) > 20:
     uploaded_files = uploaded_files[:20]
 
 # --- Threshold control ---
-egfp_threshold_multiplier = st.slider(
-    "Adjust EGFP Threshold Multiplier",
-    min_value=1.0,
-    max_value=5.0,
-    value=3.0,
-    step=0.1
-)
+st.markdown("### EGFP Threshold Range (for artifact filtering)")
+col_low, col_high = st.columns(2)
+with col_low:
+    egfp_threshold_low = st.slider("Lower EGFP Threshold Multiplier", 0.5, 3.0, 1.0, 0.1)
+with col_high:
+    egfp_threshold_high = st.slider("Upper EGFP Threshold Multiplier", 3.0, 10.0, 6.0, 0.1)
+
 
 # --- Sample key extractor ---
 def extract_sample_key(filename):
@@ -99,8 +99,12 @@ for sample, files in file_dict.items():
 
         # --- EGFP processing ---
         egfp_denoised = filters.gaussian(egfp_image, sigma=1)
-        egfp_thresh = filters.threshold_otsu(egfp_denoised) * egfp_threshold_multiplier
-        egfp_mask = morphology.remove_small_objects(egfp_denoised > egfp_thresh, min_size=10)
+        otsu_val = filters.threshold_otsu(egfp_denoised)
+        low_thresh = otsu_val * egfp_threshold_low
+        high_thresh = otsu_val * egfp_threshold_high
+        egfp_mask = (egfp_denoised > low_thresh) & (egfp_denoised < high_thresh)
+        egfp_mask = morphology.remove_small_objects(egfp_mask, min_size=10)
+
         egfp_labels = measure.label(egfp_mask)
         egfp_props = measure.regionprops(egfp_labels)
         egfp_count = len(egfp_props)

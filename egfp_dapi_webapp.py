@@ -53,9 +53,9 @@ uploaded_files = st.file_uploader(
 st.session_state.clear_uploads = False  # reset after use
 
 # --- Limit number of uploaded files ---
-if uploaded_files and len(uploaded_files) > 40:
-    st.error("⚠️ Please upload a maximum of 20 EGFP+DAPI image pairs (40 files total).")
-    uploaded_files = uploaded_files[:40]
+if uploaded_files and len(uploaded_files) > 20:
+    st.error("⚠️ Please upload a maximum of 10 EGFP+DAPI image pairs (20 files total).")
+    uploaded_files = uploaded_files[:20]
 
 # --- Threshold control ---
 egfp_threshold_multiplier = st.slider(

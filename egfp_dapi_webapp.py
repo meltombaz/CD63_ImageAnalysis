@@ -39,17 +39,19 @@ uploaded_files = st.file_uploader("Upload EGFP and DAPI TIFF files", type=["tif"
 # Threshold slider
 egfp_threshold_multiplier = st.slider("Adjust EGFP Threshold Multiplier", min_value=1.0, max_value=5.0, value=3.0, step=0.1)
 
-# Extract sample key: A01f0012XXXXX_7-4_CTRL
+# Updated key extraction based on full filenames you provided
 def extract_sample_key(filename):
-    match = re.search(r'(A\d{2}f\d{9}_\d+-\d+_[A-Za-z0-9]+)', filename)
+    match = re.search(r'(A\d{2}f\d{9}_\d+-\d+_[A-Z]+)\.tif$', filename)
     return match.group(1) if match else None
 
-# Group files by key
+# Group files by extracted key
 file_dict = defaultdict(dict)
 for file in uploaded_files:
     fname = file.name
     key = extract_sample_key(fname)
-    if key:
+    if not key:
+        st.warning(f"⚠️ Could not extract key from: {fname}")
+    else:
         if "EGFP" in fname.upper():
             file_dict[key]["EGFP"] = file
         elif "DAPI" in fname.upper():
@@ -78,7 +80,12 @@ for sample, files in file_dict.items():
 
         # --- Calculate percentage ---
         percentage = (egfp_count / dapi_count) * 100 if dapi_count > 0 else 0
-        results.append({"Sample": sample, "DAPI+ Cells": dapi_count, "EGFP+ Cells": egfp_count, "EGFP+ %": f"{percentage:.2f}%"})
+        results.append({
+            "Sample": sample,
+            "DAPI+ Cells": dapi_count,
+            "EGFP+ Cells": egfp_count,
+            "EGFP+ %": f"{percentage:.2f}%"
+        })
 
         # --- Show visualization ---
         with st.expander(f"🔬 Results for {sample}"):
@@ -121,4 +128,4 @@ if results:
     csv = df_results.to_csv(index=False).encode('utf-8')
     st.download_button("📥 Download Summary CSV", data=csv, file_name="egfp_dapi_summary.csv", mime="text/csv")
 else:
-    st.info("Upload valid pairs of EGFP and DAPI images that include a pattern like A01f0012XXXX_7-4_CTRL.")
+    st.info("Upload valid pairs of EGFP and DAPI images with names like: A01f00120006_8-4_CTRL.tif")

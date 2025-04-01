@@ -8,7 +8,7 @@ import re
 from collections import defaultdict
 import pandas as pd
 
-# Page config and custom style
+# Page config and pink style
 st.set_page_config(page_title="Batch EGFP & DAPI Analysis", page_icon="🐱", layout="wide")
 st.markdown(
     """
@@ -36,15 +36,15 @@ st.title("Batch EGFP & DAPI Cell Analysis Web App 🐱")
 # Upload multiple files
 uploaded_files = st.file_uploader("Upload EGFP and DAPI TIFF files", type=["tif"], accept_multiple_files=True)
 
-# Threshold multiplier slider
+# Threshold slider
 egfp_threshold_multiplier = st.slider("Adjust EGFP Threshold Multiplier", min_value=1.0, max_value=5.0, value=3.0, step=0.1)
 
-# Function to extract the well ID from filename
+# Extract sample key: A01f0012XXXXX_7-4_CTRL
 def extract_sample_key(filename):
-    match = re.search(r'(A\d{2}f\d{9})', filename)
+    match = re.search(r'(A\d{2}f\d{9}_\d+-\d+_[A-Za-z0-9]+)', filename)
     return match.group(1) if match else None
 
-# Pair files by extracted well ID
+# Group files by key
 file_dict = defaultdict(dict)
 for file in uploaded_files:
     fname = file.name
@@ -57,13 +57,13 @@ for file in uploaded_files:
 
 results = []
 
-# Process each valid EGFP+DAPI pair
+# Process each sample
 for sample, files in file_dict.items():
     if "EGFP" in files and "DAPI" in files:
         egfp_image = tiff.imread(files["EGFP"])
         dapi_image = tiff.imread(files["DAPI"])
 
-        # EGFP processing
+        # --- EGFP processing ---
         egfp_denoised = filters.gaussian(egfp_image, sigma=1)
         egfp_thresh = filters.threshold_otsu(egfp_denoised) * egfp_threshold_multiplier
         egfp_mask = morphology.remove_small_objects(egfp_denoised > egfp_thresh, min_size=10)
@@ -71,16 +71,17 @@ for sample, files in file_dict.items():
         egfp_props = measure.regionprops(egfp_labels)
         egfp_count = len(egfp_props)
 
-        # DAPI processing
+        # --- DAPI processing ---
         dapi_mask = morphology.remove_small_objects(dapi_image > filters.threshold_otsu(dapi_image), min_size=10)
         dapi_labels = measure.label(dapi_mask)
         dapi_count = len(measure.regionprops(dapi_labels))
 
+        # --- Calculate percentage ---
         percentage = (egfp_count / dapi_count) * 100 if dapi_count > 0 else 0
         results.append({"Sample": sample, "DAPI+ Cells": dapi_count, "EGFP+ Cells": egfp_count, "EGFP+ %": f"{percentage:.2f}%"})
 
-        # Show visualization
-        with st.expander(f"Results for {sample}"):
+        # --- Show visualization ---
+        with st.expander(f"🔬 Results for {sample}"):
             fig, axes = plt.subplots(2, 3, figsize=(15, 10))
             axes[0, 0].imshow(egfp_image, cmap='gray')
             axes[0, 0].set_title("Raw EGFP")
@@ -110,14 +111,14 @@ for sample, files in file_dict.items():
             plt.tight_layout()
             st.pyplot(fig)
 
-# Show summary results table
+# --- Summary Table ---
 if results:
-    st.subheader("Summary Table of Cell Counts")
+    st.subheader("📊 Summary Table of Cell Counts")
     df_results = pd.DataFrame(results)
     st.dataframe(df_results)
 
     # CSV download
     csv = df_results.to_csv(index=False).encode('utf-8')
-    st.download_button("Download Summary CSV", data=csv, file_name="egfp_dapi_summary.csv", mime="text/csv")
+    st.download_button("📥 Download Summary CSV", data=csv, file_name="egfp_dapi_summary.csv", mime="text/csv")
 else:
-    st.info("Please upload valid EGFP and DAPI image pairs containing a recognizable sample ID like A01f00120006.")
+    st.info("Upload valid pairs of EGFP and DAPI images that include a pattern like A01f0012XXXX_7-4_CTRL.")

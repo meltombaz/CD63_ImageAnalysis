@@ -3,18 +3,17 @@ import tifffile as tiff
 import matplotlib.pyplot as plt
 from skimage import filters, measure, morphology
 import numpy as np
-import io as pyio
 import re
 from collections import defaultdict
 import pandas as pd
 
-# Page config and pink style
+# Page config and pink theme
 st.set_page_config(page_title="Batch EGFP & DAPI Analysis", page_icon="🐱", layout="wide")
 st.markdown(
     """
     <style>
         body {
-            background-image: url('https://pbs.twimg.com/media/GmuT894XoAAGm5a?format=jpg&name=4096x4096');
+            background-image: url('https://wallpapercat.com/w/full/e/9/c/24514-1920x1200-desktop-hd-kitten-background-photo.jpg');
             background-size: cover;
             color: white;
         }
@@ -36,17 +35,28 @@ st.title("Batch EGFP & DAPI Cell Analysis Web App 🐱")
 # Upload multiple files
 uploaded_files = st.file_uploader("Upload EGFP and DAPI TIFF files", type=["tif"], accept_multiple_files=True)
 
-# Threshold slider
-egfp_threshold_multiplier = st.slider("Adjust EGFP Threshold Multiplier", min_value=1.0, max_value=5.0, value=3.0, step=0.1)
+# Limit number of uploaded files
+if uploaded_files and len(uploaded_files) > 40:
+    st.error("⚠️ Please upload a maximum of 20 EGFP+DAPI image pairs (40 files total).")
+    uploaded_files = uploaded_files[:40]
 
-# Use this instead of regex
+# Threshold slider
+egfp_threshold_multiplier = st.slider(
+    "Adjust EGFP Threshold Multiplier",
+    min_value=1.0,
+    max_value=5.0,
+    value=3.0,
+    step=0.1
+)
+
+# ✅ Sample key extractor using last 3 parts: wellID_grid_treatment
 def extract_sample_key(filename):
     parts = filename.replace(".tif", "").split("_")
     if len(parts) >= 3:
         return "_".join(parts[-3:])
     return None
 
-# Group files by extracted key
+# Group files by sample key
 file_dict = defaultdict(dict)
 for file in uploaded_files:
     fname = file.name
@@ -58,6 +68,9 @@ for file in uploaded_files:
             file_dict[key]["EGFP"] = file
         elif "DAPI" in fname.upper():
             file_dict[key]["DAPI"] = file
+
+if file_dict:
+    st.info(f"🔍 Found {len(file_dict)} matched sample(s).")
 
 results = []
 
@@ -130,4 +143,7 @@ if results:
     csv = df_results.to_csv(index=False).encode('utf-8')
     st.download_button("📥 Download Summary CSV", data=csv, file_name="egfp_dapi_summary.csv", mime="text/csv")
 else:
-    st.info("Upload valid pairs of EGFP and DAPI images with names like: A01f00290028_6-4_PMA.tif")
+    if uploaded_files:
+        st.warning("⚠️ No valid EGFP + DAPI pairs found among the uploaded files.")
+    else:
+        st.info("Please upload TIFF files to get started.")

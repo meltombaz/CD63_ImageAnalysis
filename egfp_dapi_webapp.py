@@ -14,7 +14,7 @@ st.markdown(
     """
     <style>
         body {
-            background-image: url('https://wallpapercat.com/w/full/e/9/c/24514-1920x1200-desktop-hd-kitten-background-photo.jpg');
+            background-image: url('https://images.pexels.com/photos/96938/pexels-photo-96938.jpeg?auto=compress&cs=tinysrgb&w=1200');
             background-size: cover;
             color: white;
         }
@@ -39,12 +39,10 @@ uploaded_files = st.file_uploader("Upload EGFP and DAPI TIFF files", type=["tif"
 # Threshold slider
 egfp_threshold_multiplier = st.slider("Adjust EGFP Threshold Multiplier", min_value=1.0, max_value=5.0, value=3.0, step=0.1)
 
-# Updated key extraction based on full filenames you provided
+# ✅ FINAL FIXED sample key extractor
 def extract_sample_key(filename):
-    match = re.search(r'(A\d{2}f\d{9}_\d+-\d+_[A-Z]+)(?:_Ph\d+)?\.tif$', filename)
+    match = re.search(r'(A\d{2}f\d{9}_\d+-\d+_[A-Z]+)', filename)
     return match.group(1) if match else None
-
-
 
 # Group files by extracted key
 file_dict = defaultdict(dict)
@@ -61,7 +59,7 @@ for file in uploaded_files:
 
 results = []
 
-# Process each sample
+# Process each matched pair
 for sample, files in file_dict.items():
     if "EGFP" in files and "DAPI" in files:
         egfp_image = tiff.imread(files["EGFP"])
@@ -130,4 +128,4 @@ if results:
     csv = df_results.to_csv(index=False).encode('utf-8')
     st.download_button("📥 Download Summary CSV", data=csv, file_name="egfp_dapi_summary.csv", mime="text/csv")
 else:
-    st.info("Upload valid pairs of EGFP and DAPI images with names like: A01f00120006_8-4_CTRL.tif")
+    st.info("Upload valid pairs of EGFP and DAPI images with names like: A01f00290028_6-4_PMA.tif")

@@ -61,9 +61,9 @@ if uploaded_files and len(uploaded_files) > 20:
 st.markdown("### EGFP Threshold Range (for artifact filtering)")
 col_low, col_high = st.columns(2)
 with col_low:
-    egfp_threshold_low = st.slider("Lower EGFP Threshold Multiplier", 0.5, 3.0, 1.0, 0.1)
+    egfp_threshold_low = st.slider("Lower EGFP Threshold Multiplier", 0.5, 3.0, 2.5, 0.1)
 with col_high:
-    egfp_threshold_high = st.slider("Upper EGFP Threshold Multiplier", 3.0, 10.0, 6.0, 0.1)
+    egfp_threshold_high = st.slider("Upper EGFP Threshold Multiplier", 3.0, 10.0, 4.0, 0.1)
 
 
 # --- Sample key extractor ---
